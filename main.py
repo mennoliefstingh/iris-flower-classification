@@ -1,28 +1,21 @@
-from sklearn import datasets
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, GridSearchCV
+from typing import Tuple
+from sklearn.model_selection import cross_val_score
+from src.model_evaluation import pprint_xval_results
 import numpy as np
 
-X, y = datasets.load_iris(return_X_y=True)
+from src.data_loading import load_iris_data
 
-clf = RandomForestClassifier()
+X, y = load_iris_data()
+print("iris data loaded")
 
-param_grid = {'n_estimators':np.arange(25, 200, 25).tolist(),
-             'max_depth': np.arange(5, 50, 5).tolist(),
-             'min_samples_split':[2, 4, 6, 8, 10],
-             'min_samples_leaf': [1, 2, 3, 4, 5]}
+from src.models.knn import get_untrained_knn_classifier
 
-def find_optimal_parameters(clf, param_grid:dict, X, y) -> dict:
-    gridsearch = GridSearchCV(clf, param_grid, n_jobs=6)
-    gridsearch.fit(X,y)
-    return gridsearch.best_params_
+knn_clf = get_untrained_knn_classifier(X, y)
 
-best_params = find_optimal_parameters(clf, param_grid, X, y)
+pprint_xval_results(knn_clf, X, y)
 
-print('training and testing classifier')
+from src.models.random_forest import get_trained_rf_classifier, get_untrained_rf_classifier
 
-clf = RandomForestClassifier()
-clf.set_params(**best_params)
-print(np.mean(cross_val_score(clf, X, y)))
-
+rf_clf = get_untrained_rf_classifier(X, y)
+pprint_xval_results(rf_clf, X, y)
 
