@@ -1,28 +1,17 @@
-from sklearn import datasets
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, GridSearchCV
-import numpy as np
+from typing import Tuple
+from sklearn.model_selection import train_test_split
+from src.model_evaluation import pprint_results
+from src.data_loading import load_iris_data
+from src.models.knn import get_trained_knn_classifier
+from src.models.random_forest import get_trained_rf_classifier
 
-X, y = datasets.load_iris(return_X_y=True)
+X, y = load_iris_data()
 
-clf = RandomForestClassifier()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=123)
 
-param_grid = {'n_estimators':np.arange(25, 200, 25).tolist(),
-             'max_depth': np.arange(5, 50, 5).tolist(),
-             'min_samples_split':[2, 4, 6, 8, 10],
-             'min_samples_leaf': [1, 2, 3, 4, 5]}
+knn_clf = get_trained_knn_classifier(X_train, y_train)
+rf_clf = get_trained_rf_classifier(X_train, y_train)
 
-def find_optimal_parameters(clf, param_grid:dict, X, y) -> dict:
-    gridsearch = GridSearchCV(clf, param_grid, n_jobs=6)
-    gridsearch.fit(X,y)
-    return gridsearch.best_params_
-
-best_params = find_optimal_parameters(clf, param_grid, X, y)
-
-print('training and testing classifier')
-
-clf = RandomForestClassifier()
-clf.set_params(**best_params)
-print(np.mean(cross_val_score(clf, X, y)))
-
+pprint_results(knn_clf, X_test, y_test)
+pprint_results(rf_clf, X_test, y_test)
 
